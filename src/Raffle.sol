@@ -28,11 +28,7 @@ import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/inter
 import {console} from "forge-std/console.sol";
 
 contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
-    error Raffle__UpkeepNotNeeded(
-        uint256 currentBalance,
-        uint256 numPlayers,
-        uint256 raffleState
-    );
+    error Raffle__UpkeepNotNeeded(uint256 currentBalance, uint256 numPlayers, uint256 raffleState);
     error Raffle__TransferFailed();
     error Raffle__SendMoreToEnterRaffle();
     error Raffle__RaffleNotOpen();
@@ -93,13 +89,11 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         emit EnterRaffle(msg.sender);
     }
 
-    function checkUpkeep(
-        bytes memory /*checkdata */
-    )
+    function checkUpkeep(bytes memory /*checkdata */ )
         public
         view
         override
-        returns (bool upkeepNeeded, bytes memory /* performData */)
+        returns (bool upkeepNeeded, bytes memory /* performData */ )
     {
         bool TimehasPassed = ((block.timestamp - s_lastTimeStamp) > i_interval);
         bool HasBalance = address(this).balance > 0;
@@ -110,14 +104,10 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     }
 
     // 选择获胜者的函数
-    function performUpkeep(bytes calldata /* performData */) external override {
-        (bool upkeepNeed, ) = checkUpkeep("");
+    function performUpkeep(bytes calldata /* performData */ ) external override {
+        (bool upkeepNeed,) = checkUpkeep("");
         if (!upkeepNeed) {
-            revert Raffle__UpkeepNotNeeded(
-                address(this).balance,
-                s_player.length,
-                uint256(s_raffState)
-            );
+            revert Raffle__UpkeepNotNeeded(address(this).balance, s_player.length, uint256(s_raffState));
         }
         //抽奖正在计算触发者，通常意味着不再接受新的参与者，正在等待随机数生成或其他计算完成。
         s_raffState = RaffState.Calculating;
@@ -138,10 +128,7 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     }
 
     // 实现VRF回调函数，用于处理随机数,CEI:Checks,Effects,Interactions
-    function fulfillRandomWords(
-        uint256,
-        uint256[] calldata randomWords
-    ) internal override {
+    function fulfillRandomWords(uint256, uint256[] calldata randomWords) internal override {
         //checks
         //Effects(our own contract)
         uint256 indexOfWinner = randomWords[0] % s_player.length;
@@ -157,7 +144,7 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
 
         emit WinnerPicked(winner);
         //Interactions(other contracts)
-        (bool success, ) = winner.call{value: address(this).balance}("");
+        (bool success,) = winner.call{value: address(this).balance}("");
         if (!success) {
             revert Raffle__TransferFailed();
         }
@@ -172,9 +159,7 @@ contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         return s_raffState;
     }
 
-    function getplayer(
-        uint256 indexedOfPlayer
-    ) external view returns (address) {
+    function getplayer(uint256 indexedOfPlayer) external view returns (address) {
         return s_player[indexedOfPlayer];
     }
 
